@@ -13,7 +13,7 @@ export const routes = [
   {
     path: '/menu',
     element: Menu,
-    protected: false
+    protected: true
   },
   {
     path: '/cart',

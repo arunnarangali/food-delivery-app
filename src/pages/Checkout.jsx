@@ -10,8 +10,12 @@ import {
   CheckCircleIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
-import { useCart } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
+import { useCart } from "../hooks/useCart";
+import { useAuth } from "../hooks/useAuth";
+import OrderSummary from "../components/ui/OrderSummary";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -73,38 +77,23 @@ const Checkout = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Delivery Form */}
           <div className="lg:col-span-2">
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="bg-white rounded-lg shadow-md p-6"
-            >
+            <Card className="p-6">
               <h2 className="text-2xl font-bold mb-6">Delivery Information</h2>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="flex items-center gap-2 text-gray-700 font-semibold mb-2">
-                    <UserIcon className="h-5 w-5" />
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    {...register("name", {
-                      required: "Name is required",
-                      minLength: {
-                        value: 2,
-                        message: "Name must be at least 2 characters",
-                      },
-                    })}
-                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      errors.name ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="John Doe"
-                  />
-                  {errors.name && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.name.message}
-                    </p>
-                  )}
-                </div>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <Input
+                  label="Full Name *"
+                  icon={UserIcon}
+                  placeholder="John Doe"
+                  error={errors.name?.message}
+                  {...register("name", {
+                    required: "Name is required",
+                    minLength: {
+                      value: 2,
+                      message: "Name must be at least 2 characters",
+                    },
+                  })}
+                />
 
                 <div>
                   <label className="flex items-center gap-2 text-gray-700 font-semibold mb-2">
@@ -132,31 +121,20 @@ const Checkout = () => {
                   )}
                 </div>
 
-                <div>
-                  <label className="flex items-center gap-2 text-gray-700 font-semibold mb-2">
-                    <PhoneIcon className="h-5 w-5" />
-                    Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    {...register("phone", {
-                      required: "Phone number is required",
-                      pattern: {
-                        value: /^[0-9]{10}$/,
-                        message: "Please enter a valid 10-digit phone number",
-                      },
-                    })}
-                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      errors.phone ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="1234567890"
-                  />
-                  {errors.phone && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.phone.message}
-                    </p>
-                  )}
-                </div>
+                <Input
+                  label="Phone Number *"
+                  icon={PhoneIcon}
+                  type="tel"
+                  placeholder="1234567890"
+                  error={errors.phone?.message}
+                  {...register("phone", {
+                    required: "Phone number is required",
+                    pattern: {
+                      value: /^[0-9]{10}$/,
+                      message: "Please enter a valid 10-digit phone number",
+                    },
+                  })}
+                />
 
                 <div>
                   <label className="flex items-center gap-2 text-gray-700 font-semibold mb-2">
@@ -173,67 +151,28 @@ const Checkout = () => {
                     <option value="upi">UPI</option>
                   </select>
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`flex items-center justify-center gap-2 w-full mt-6 py-3 rounded-lg font-semibold transition ${
-                  isLoading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-orange-500 hover:bg-orange-600 text-white"
-                }`}
-              >
-                {isLoading ? (
-                  <>
-                    <ArrowPathIcon className="h-5 w-5 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircleIcon className="h-5 w-5" />
-                    Place Order
-                  </>
-                )}
-              </button>
-            </form>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  icon={isLoading ? ArrowPathIcon : CheckCircleIcon}
+                  className="w-full mt-6"
+                >
+                  {isLoading ? "Processing..." : "Place Order"}
+                </Button>
+              </form>
+            </Card>
           </div>
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-              <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
-
-              <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-gray-600">
-                      {item.name} x {item.quantity}
-                    </span>
-                    <span className="font-semibold">
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="border-t pt-4 space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-semibold">${subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Delivery Fee</span>
-                  <span className="font-semibold">
-                    ${deliveryFee.toFixed(2)}
-                  </span>
-                </div>
-                <div className="border-t pt-3 flex justify-between text-xl font-bold">
-                  <span>Total</span>
-                  <span className="text-orange-500">${total.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
+            <OrderSummary
+              cartItems={cartItems}
+              subtotal={subtotal}
+              deliveryFee={deliveryFee}
+              total={total}
+              showItems
+            />
           </div>
         </div>
       </div>

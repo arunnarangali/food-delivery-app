@@ -7,7 +7,10 @@ import {
   LockClosedIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
+import Card from "../components/ui/Card";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -27,16 +30,21 @@ const Login = () => {
     },
   });
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
+    let result;
+    
     if (isLogin) {
-      login(data.email, data.password);
-      toast.success("Login successful!");
+      result = await login(data.email, data.password);
     } else {
-      registerUser(data.name, data.email, data.password);
-      toast.success("Registration successful!");
+      result = await registerUser(data.name, data.email, data.password);
     }
 
-    navigate("/");
+    if (result.success) {
+      toast.success(isLogin ? "Login successful!" : "Registration successful!");
+      navigate("/");
+    } else {
+      toast.error(result.error || "An error occurred");
+    }
   };
 
   const toggleMode = () => {
@@ -45,22 +53,44 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h2 className="text-3xl font-bold text-center mb-8">
-            {isLogin ? "Login" : "Register"}
-          </h2>
+    <div className="min-h-screen flex">
+      {/* Left Side - Image */}
+      <div className="hidden lg:flex lg:w-1/2 relative">
+        <img
+          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2070&auto=format&fit=crop"
+          alt="Delicious food"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-linear-to-br from-orange-500/90 to-red-500/90 flex items-center justify-center p-12">
+          <div className="text-white text-center">
+            <h1 className="text-5xl font-bold mb-4">FoodExpress</h1>
+            <p className="text-xl">Delicious food delivered to your door</p>
+          </div>
+        </div>
+      </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {!isLogin && (
-              <div>
-                <label className="flex items-center gap-2 text-gray-700 font-semibold mb-2">
-                  <UserIcon className="h-5 w-5" />
-                  Full Name *
-                </label>
-                <input
-                  type="text"
+      {/* Right Side - Form */}
+      <div className="flex-1 flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-md w-full">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">
+              {isLogin ? "Welcome Back" : "Create Account"}
+            </h2>
+            <p className="mt-2 text-gray-600">
+              {isLogin
+                ? "Sign in to your account to continue"
+                : "Sign up to get started with FoodExpress"}
+            </p>
+          </div>
+
+          <Card className="p-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {!isLogin && (
+                <Input
+                  label="Full Name *"
+                  icon={UserIcon}
+                  placeholder="John Doe"
+                  error={errors.name?.message}
                   {...register("name", {
                     required: isLogin ? false : "Name is required",
                     minLength: {
@@ -68,26 +98,15 @@ const Login = () => {
                       message: "Name must be at least 2 characters",
                     },
                   })}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                    errors.name ? "border-red-500" : "border-gray-300"
-                  }`}
-                  placeholder="John Doe"
                 />
-                {errors.name && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.name.message}
-                  </p>
-                )}
-              </div>
-            )}
+              )}
 
-            <div>
-              <label className="flex items-center gap-2 text-gray-700 font-semibold mb-2">
-                <EnvelopeIcon className="h-5 w-5" />
-                Email *
-              </label>
-              <input
+              <Input
+                label="Email *"
+                icon={EnvelopeIcon}
                 type="email"
+                placeholder="john@example.com"
+                error={errors.email?.message}
                 {...register("email", {
                   required: "Email is required",
                   pattern: {
@@ -95,25 +114,14 @@ const Login = () => {
                     message: "Please enter a valid email address",
                   },
                 })}
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                  errors.email ? "border-red-500" : "border-gray-300"
-                }`}
-                placeholder="john@example.com"
               />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
 
-            <div>
-              <label className="flex items-center gap-2 text-gray-700 font-semibold mb-2">
-                <LockClosedIcon className="h-5 w-5" />
-                Password *
-              </label>
-              <input
+              <Input
+                label="Password *"
+                icon={LockClosedIcon}
                 type="password"
+                placeholder="••••••••"
+                error={errors.password?.message}
                 {...register("password", {
                   required: "Password is required",
                   minLength: {
@@ -121,36 +129,24 @@ const Login = () => {
                     message: "Password must be at least 6 characters",
                   },
                 })}
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                  errors.password ? "border-red-500" : "border-gray-300"
-                }`}
-                placeholder="••••••••"
               />
-              {errors.password && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.password.message}
-                </p>
-              )}
+
+              <Button type="submit" className="w-full">
+                {isLogin ? "Sign In" : "Sign Up"}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <button
+                onClick={toggleMode}
+                className="text-orange-500 hover:text-orange-600 font-semibold transition"
+              >
+                {isLogin
+                  ? "Don't have an account? Sign up"
+                  : "Already have an account? Sign in"}
+              </button>
             </div>
-
-            <button
-              type="submit"
-              className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition"
-            >
-              {isLogin ? "Login" : "Register"}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={toggleMode}
-              className="text-orange-500 hover:text-orange-600 font-semibold"
-            >
-              {isLogin
-                ? "Don't have an account? Register"
-                : "Already have an account? Login"}
-            </button>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

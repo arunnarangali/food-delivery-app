@@ -168,3 +168,14 @@ export const foodItems = [
     description: "Crispy vegetable spring rolls with sweet chili sauce"
   }
 ];
+
+
+ export const MOCK_USERS = [
+  {
+    id: 1,
+    name: "Demo User",
+    email: "demo@example.com",
+    password: "password123",
+  },
+  { id: 2, name: "arun", email: "arunnarangali1@gmail.com", password: "test1234" },
+];
